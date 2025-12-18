@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Specific Admin Styles */
+        body {
+            background-color: #0d0d0d;
+        }
+        .admin-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--accent-purple);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: var(--radius-sm);
+        }
+        .file-drop-zone {
+            border: 2px dashed var(--text-secondary);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .file-drop-zone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        /* Resource Management Table Styles */
+        .resource-row {
+            display: grid;
+            grid-template-columns: 1fr 100px 100px 210px; /* Increased last column for 3 buttons */
+            gap: 15px;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            transition: background 0.2s;
+        }
+        .resource-row:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .row-title {
+            color: white;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .status-badge.public {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+        }
+        .status-badge.private {
+            background: rgba(255, 50, 50, 0.1);
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border: 1px solid var(--glass-border);
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+        }
+        .action-btn.delete-btn:hover {
+            background: rgba(255, 77, 77, 0.1) !important;
+            border-color: #ff4d4d !important;
+            color: #ff4d4d !important;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.2);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .admin-container {
+                margin: 20px 10px;
+                padding: 20px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr; /* Stack form inputs */
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            
+            /* Mobile Resource Table - Card View */
+            .resource-row {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 15px;
+            }
+            .resource-row > div:last-child {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                margin-top: 5px;
+            }
+            .action-btn {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+
+        /* Restore Default Cursor for Admin */
+        *, *:before, *:after {
+            cursor: auto !important;
+        }
+        a, button, input[type="submit"], .file-drop-zone, select, .action-btn {
+            cursor: pointer !important;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="admin-container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2>Command Center</h2>
+            <button id="logout-btn" class="btn-ghost">Logout</button>
+        </header>
+
+        <section id="upload-section">
+            <h3 style="margin-bottom: 20px; color: var(--accent-cyan)">New Resource</h3>
+            <form id="resource-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="res-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category (Optional)</label>
+                        <input type="text" id="res-category" placeholder="e.g. Frontend, Design, AI">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="res-type">
+                            <option value="video">Video</option>
+                            <option value="pdf">PDF Document</option>
+                            <option value="link">External Link</option>
+                            <option value="image">Image Asset</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>External URL (Optional)</label>
+                        <input type="url" id="res-url">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Description</label>
+                        <textarea id="res-desc" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Featured?</label>
+                        <input type="checkbox" id="res-featured" style="width: auto;"> Promote to Grid
+                    </div>
+                </div>
+
+                <div class="file-drop-zone" id="file-drop">
+                    <p>Drag & Drop files here or click to upload</p>
+                    <input type="file" id="file-input" hidden>
+                    <!-- Cloudinary widget trigger can be hooked here -->
+                </div>
+
+                <button type="submit" class="btn-primary">Upload Resource to Database</button>
+            </form>
+        </section>
+
+        <!-- Management Section -->
+        <section id="manage-section" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--glass-border);">
+            <h3 style="margin-bottom: 20px; color: var(--accent-purple)">Manage Resources</h3>
+            <div id="resources-list" class="resources-table-container">
+                <!-- Resources will be injected here via JS -->
+                <p style="color: var(--text-secondary);">Loading resources...</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 style="margin-bottom: 20px; color: var(--accent-cyan)">Edit Resource</h3>
+            <form id="edit-resource-form">
+                <input type="hidden" id="edit-doc-id">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="edit-title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="edit-category" placeholder="e.g. Frontend, Design, AI">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="edit-type">
+                            <option value="video">Video</option>
+                            <option value="pdf">PDF Document</option>
+                            <option value="link">External Link</option>
+                            <option value="image">Image Asset</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Source URL</label>
+                        <input type="text" id="edit-url">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Description</label>
+                        <textarea id="edit-desc" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Visibility</label>
+                        <select id="edit-isPublic">
+                            <option value="true">Public (Visible)</option>
+                            <option value="false">Private (Locked)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Featured?</label>
+                        <div style="display: flex; align-items: center; height: 100%;">
+                            <input type="checkbox" id="edit-featured" style="width: auto; margin-right: 10px;"> 
+                            <span style="color: white; font-size: 0.9rem;">Promote to Grid</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="margin-top: 20px;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cloudinary Widget Script -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
